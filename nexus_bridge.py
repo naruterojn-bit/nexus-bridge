@@ -6,6 +6,7 @@ import asyncio
 import logging
 import os
 import re
+import aiohttp
 from telethon import TelegramClient, events
 from telethon.sessions import StringSession
 
@@ -72,7 +73,6 @@ async def handler_respuesta_bot(event):
     text = event.raw_text.strip()
     logger.info(f"Respuesta de NexusNetflixBot: {text[:100]}...")
     
-    # Verificar si la respuesta contiene WA:51XXXXXXXXX
     if not text.startswith("WA:"):
         return
     
@@ -82,11 +82,20 @@ async def handler_respuesta_bot(event):
     
     logger.info(f"Reenviando respuesta al grupo para WA: {numero_wa}")
     
-    # Reenviar la respuesta al grupo de Telegram
     await client.send_message(
         GRUPO_ID,
         f"📱 Respuesta para {numero_wa}:\n\n{respuesta_cliente}"
     )
+    
+    # Avisar a n8n con la respuesta
+    async with aiohttp.ClientSession() as session:
+        await session.post(
+            "https://primary-production-1a10a.up.railway.app/webhook/nexus-wa-bot",
+            json={
+                "numero_wa": numero_wa,
+                "mensaje": respuesta_cliente
+            }
+        )
 
 # ══════════════════════════════════════════════
 #  MAIN
