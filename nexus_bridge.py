@@ -50,7 +50,7 @@ async def handler_grupo(event):
     logger.info(f"Mensaje de NexusBridgeBot: {text}")
     
     # Detectar formato SOPORTE:51XXXXXXXXX
-    match = re.match(r"SOPORTE:(\d+)", text)
+    match = re.match(r"(?:SOPORTE:|/ayuda\s+)(\d+)", text)
     if not match:
         return
     
