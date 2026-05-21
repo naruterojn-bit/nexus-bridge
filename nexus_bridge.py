@@ -61,7 +61,7 @@ async def handler_grupo(event):
         logger.info(f"Comando /ayuda enviado. msg_id={msg_enviado.id}, wa={numero_wa}")
         return
 
-    # ── Caso 2: /respuestawa 51XXXXXXXXX <texto> ── NUEVO ─────────────────
+    # ── Caso 2: /respuestawa 51XXXXXXXXX <texto> ──────────────────────────
     match_rwa = re.match(r"(/respuestawa\s+\S+.*)", text, re.IGNORECASE)
     if match_rwa:
         comando_completo = match_rwa.group(1)
@@ -72,6 +72,39 @@ async def handler_grupo(event):
         sesiones_pendientes[msg_enviado.id] = numero_wa
         logger.info(f"Comando /respuestawa enviado. msg_id={msg_enviado.id}, wa={numero_wa}")
         return
+
+    # ── Caso 3: /cambioforzado 51XXXXXXXXX ────────────────────────────────
+    match_cf = re.match(r"(/cambioforzado\s+\d+)", text, re.IGNORECASE)
+    if match_cf:
+        comando_completo = match_cf.group(1)
+        partes = text.split()
+        numero_wa = partes[1] if len(partes) > 1 else "desconocido"
+        logger.info(f"Reenviando /cambioforzado para WA: {numero_wa}")
+        msg_enviado = await client.send_message(nexus_bot, comando_completo)
+        sesiones_pendientes[msg_enviado.id] = numero_wa
+        logger.info(f"Comando /cambioforzado enviado. msg_id={msg_enviado.id}, wa={numero_wa}")
+        return
+
+    # ── Caso 4: /cambioforzadofoto 51XXXXXXXXX (foto con caption) ─────────
+    # n8n envía una foto al grupo con caption "/cambioforzadofoto <numero_wa>"
+    # Hay que reenviarla al Bot Principal con la foto y el caption intactos.
+    if event.photo:
+        caption = text  # raw_text ya contiene el caption de la foto
+        match_cff = re.match(r"(/cambioforzadofoto\s+\d+)", caption, re.IGNORECASE)
+        if match_cff:
+            partes = caption.split()
+            numero_wa = partes[1] if len(partes) > 1 else "desconocido"
+            logger.info(f"Reenviando /cambioforzadofoto (foto) para WA: {numero_wa}")
+            # Descargamos la foto en memoria y la enviamos al bot con el caption
+            photo_bytes = await event.download_media(bytes)
+            msg_enviado = await client.send_file(
+                nexus_bot,
+                file=photo_bytes,
+                caption=caption,
+            )
+            sesiones_pendientes[msg_enviado.id] = numero_wa
+            logger.info(f"Foto /cambioforzadofoto enviada. msg_id={msg_enviado.id}, wa={numero_wa}")
+            return
 
 # ══════════════════════════════════════════════
 #  ESCUCHA RESPUESTA DEL NEXUSNETFLIXBOT (chat privado)
