@@ -143,8 +143,10 @@ async def handler_respuesta_bot(event):
 # ══════════════════════════════════════════════
 async def main():
     logger.info("🚀 NexusBridge iniciando...")
-    import os
-    await client.start(bot_token=os.environ.get('BOT_TOKEN'))
+    
+    # 🔴 Borramos el import os y el bot_token
+    await client.start() 
+    
     me = await client.get_me()
     logger.info(f"✅ Conectado como: {me.first_name} (@{me.username})")
     logger.info(f"👂 Escuchando grupo: {GRUPO_ID}")
